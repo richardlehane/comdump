@@ -10,3 +10,4 @@ Examples:
     ./comdump test.doc
     ./comdump -thumbs Thumbs.db 
  
+ Install with `go get` and compile. Or download one of the binary releases.
