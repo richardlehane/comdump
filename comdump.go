@@ -16,10 +16,12 @@
 //
 // Tool based on github.com/richardlehane/mscfb package.
 // It creates files for each of the directory entries in an compound object
-// and writes them to a comobjects directory.
+// and writes them to a comobjects directory. Extracts JPGs from Thumbs.db
+// files if you add a -thumbs switch.
 //
-// Example:
-//   ./comdump -in test.doc
+// Examples:
+//    ./comdump -in test.doc
+//    ./comdump -in Thumbs.db -thumbs
 package main
 
 import (
