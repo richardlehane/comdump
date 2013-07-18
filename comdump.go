@@ -47,7 +47,7 @@ func clean(str string) string {
 }
 
 func process(in string, thumbs bool) error {
-	thumbsBuf := make([]byte, 12)
+	thumbsBuf := make([]byte, 24)
 	file, err := os.Open(in)
 	if err != nil {
 		return err
