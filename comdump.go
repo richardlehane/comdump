@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Take a quick look at MS compound objects.
-//
+// Take a quick look inside MS compound file binary file format (OLE2/COM) files.
+
 // Tool based on github.com/richardlehane/mscfb package.
 // It creates files for each of the directory entries in an compound object
-// and writes them to a comobjects directory. Extracts JPGs from Thumbs.db
-// files if you add a -thumbs switch.
+// and writes them to a comobjects directory.
+// Extracts JPGs from Thumbs.db files if you add a -thumbs switch.
 //
 // Examples:
-//    ./comdump -in test.doc
-//    ./comdump -in Thumbs.db -thumbs
+//    ./comdump test.doc
+//    ./comdump -thumbs Thumbs.db
 package main
 
 import (
@@ -35,7 +35,6 @@ import (
 	"unicode"
 )
 
-var in = flag.String("in", "", "path to input Compound object")
 var thumbs = flag.Bool("thumbs", false, "treat input Comound object as Thumbs.db file")
 
 func clean(str string) string {
@@ -50,6 +49,7 @@ func clean(str string) string {
 
 func process(in string, thumbs bool) error {
 	thumbsBuf := make([]byte, 24)
+
 	file, err := os.Open(in)
 	if err != nil {
 		return err
@@ -99,11 +99,14 @@ func process(in string, thumbs bool) error {
 
 func main() {
 	flag.Parse()
-	if len(*in) < 1 {
-		log.Fatalln("Missing required argument: -in path_to_compound_object")
+	ins := flag.Args()
+	if len(ins) < 1 {
+		log.Fatalln("Missing required argument: path_to_compound_object")
 	}
-	err := process(*in, *thumbs)
-	if err != nil {
-		log.Fatalln(err)
+	for _, in := range ins {
+		err := process(in, *thumbs)
+		if err != nil {
+			log.Fatalln(err)
+		}
 	}
 }
