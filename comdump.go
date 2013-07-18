@@ -34,6 +34,7 @@ import (
 )
 
 var in = flag.String("in", "", "path to input Compound object")
+var thumbs = flag.Bool("thumbs", false, "treat input Comound object as Thumbs.db file")
 
 func clean(str string) string {
 	buf := make([]rune, 0, len(str))
@@ -45,7 +46,8 @@ func clean(str string) string {
 	return string(buf)
 }
 
-func process(in string) error {
+func process(in string, thumbs bool) error {
+	thumbsBuf := make([]byte, 12)
 	file, err := os.Open(in)
 	if err != nil {
 		return err
@@ -74,11 +76,19 @@ func process(in string) error {
 			return err
 		}
 		name := clean(entry.Name)
-		outFile, err := os.Create(filepath.Join(path, name))
-		if err != nil {
-			return err
+		if thumbs {
+			name += ".jpg"
+			_, err = doc.Read(thumbsBuf)
+			if err != nil {
+				return err
+			}
 		}
-		if _, err := io.Copy(outFile, doc); err != nil {
+		outFile, err := os.Create(filepath.Join(path, name))
+		if err == nil {
+			_, err = io.Copy(outFile, doc)
+		}
+		outFile.Close()
+		if err != nil {
 			return err
 		}
 	}
@@ -90,7 +100,7 @@ func main() {
 	if len(*in) < 1 {
 		log.Fatalln("Missing required argument: -in path_to_compound_object")
 	}
-	err := process(*in)
+	err := process(*in, *thumbs)
 	if err != nil {
 		log.Fatalln(err)
 	}
