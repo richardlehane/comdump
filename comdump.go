@@ -74,18 +74,29 @@ func process(in string, thumbs bool) error {
 		if err == io.EOF {
 			break
 		}
+		if entry.Dir {
+			continue
+		}
 		if err != nil {
 			return err
 		}
-		name := clean(entry.Name)
+		name, names := doc.Name()
+		if len(names) > 1 {
+			names = append(names[1:], name)
+		} else {
+			names = []string{name}
+		}
+		for _, v := range names {
+			clean(v)
+		}
 		if thumbs {
-			name += ".jpg"
+			names[len(names)-1] += ".jpg"
 			_, err = doc.Read(thumbsBuf)
 			if err != nil {
 				return err
 			}
 		}
-		outFile, err := os.Create(filepath.Join(path, name))
+		outFile, err := os.Create(filepath.Join(path, names...))
 		if err == nil {
 			_, err = io.Copy(outFile, doc)
 		}
