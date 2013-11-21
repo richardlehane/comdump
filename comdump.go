@@ -80,16 +80,11 @@ func process(in string, thumbs bool) error {
 			return err
 		}
 		paths := []string{path}
-		name, names := doc.Name()
-		if len(names) > 0 {
-			names = append(names, name)
-		} else {
-			names = []string{name}
+		entry.Path = append(entry.Path, entry.Name)
+		for i, v := range entry.Path {
+			entry.Path[i] = clean(v)
 		}
-		for i, v := range names {
-			names[i] = clean(v)
-		}
-		paths = append(paths, names...)
+		paths = append(paths, entry.Path...)
 		if entry.Children {
 			err = os.Mkdir(filepath.Join(paths...), os.ModePerm)
 			if err != nil {
@@ -103,7 +98,7 @@ func process(in string, thumbs bool) error {
 			paths[len(paths)-1] += "_"
 		}
 		if thumbs {
-			names[len(names)-1] += ".jpg"
+			paths[len(paths)-1] += ".jpg"
 			_, err = doc.Read(thumbsBuf)
 			if err != nil {
 				return err
