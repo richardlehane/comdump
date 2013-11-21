@@ -26,6 +26,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/richardlehane/mscfb"
 	"io"
 	"log"
@@ -34,6 +35,8 @@ import (
 	"strings"
 	"unicode"
 )
+
+var DEBUG = flag.Bool("debug", false, "print stream sizes to stdout")
 
 var thumbs = flag.Bool("thumbs", false, "treat input Comound object as Thumbs.db file")
 
@@ -68,26 +71,36 @@ func process(in string, thumbs bool) error {
 	if err != nil {
 		return err
 	}
-
 	for {
 		entry, err := doc.Next()
 		if err == io.EOF {
 			break
 		}
-		if entry.Dir {
-			continue
-		}
 		if err != nil {
 			return err
 		}
+		paths := []string{path}
 		name, names := doc.Name()
-		if len(names) > 1 {
-			names = append(names[1:], name)
+		if len(names) > 0 {
+			names = append(names, name)
 		} else {
 			names = []string{name}
 		}
-		for _, v := range names {
-			clean(v)
+		for i, v := range names {
+			names[i] = clean(v)
+		}
+		paths = append(paths, names...)
+		if entry.Children {
+			err = os.Mkdir(filepath.Join(paths...), os.ModePerm)
+			if err != nil {
+				return err
+			}
+			if !entry.Stream {
+				continue
+			}
+		}
+		if entry.Children && entry.Stream {
+			paths[len(paths)-1] += "_"
 		}
 		if thumbs {
 			names[len(names)-1] += ".jpg"
@@ -96,14 +109,21 @@ func process(in string, thumbs bool) error {
 				return err
 			}
 		}
-		outFile, err := os.Create(filepath.Join(path, names...))
-		if err == nil {
-			_, err = io.Copy(outFile, doc)
-		}
-		outFile.Close()
+		outFile, err := os.Create(filepath.Join(paths...))
 		if err != nil {
 			return err
 		}
+		if entry.Stream {
+			_, err = io.Copy(outFile, doc)
+			if err != nil {
+				return err
+			}
+			if *DEBUG {
+				fmt.Println(filepath.Join(paths...))
+				fmt.Printf("Stream size: %v\n", entry.StreamSize)
+			}
+		}
+		outFile.Close()
 	}
 	return nil
 }
