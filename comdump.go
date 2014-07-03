@@ -70,8 +70,8 @@ func process(in string, thumbs bool) error {
 	base += "_comobjects"
 	path := filepath.Join(dir, base)
 	if *meta {
-		fmt.Println("Root")
-		fmt.Println("  ID:        ", doc.ID)
+		fmt.Println("Root Object")
+		fmt.Println("  CLSID:        ", doc.ID)
 		fmt.Println("  Created:   ", doc.Created)
 		fmt.Println("  Modified:  ", doc.Modified)
 		fmt.Println()
@@ -96,11 +96,15 @@ func process(in string, thumbs bool) error {
 		}
 		paths = append(paths, entry.Path...)
 		if *meta {
-			fmt.Println("ComObject")
-			fmt.Println("  Name (raw):", entry.Name)
-			fmt.Println("  Path:      ", strings.Join(entry.Path, "/"))
-			if !entry.Stream {
-				fmt.Println("  ID:        ", entry.ID)
+			if entry.Stream {
+				fmt.Println("Stream Object")
+				fmt.Println("  Name (raw):", entry.Name)
+				fmt.Println("  Path:      ", strings.Join(entry.Path, "/"))
+			} else {
+				fmt.Println("Storage Object")
+				fmt.Println("  Name (raw):", entry.Name)
+				fmt.Println("  Path:      ", strings.Join(entry.Path, "/"))
+				fmt.Println("  CLSID:        ", entry.ID)
 				fmt.Println("  Created:   ", entry.Created)
 				fmt.Println("  Modified:  ", entry.Modified)
 			}
