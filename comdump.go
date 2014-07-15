@@ -61,7 +61,7 @@ func process(in string, thumbs bool) error {
 	}
 	defer file.Close()
 
-	doc, err := mscfb.NewReader(file)
+	doc, err := mscfb.New(file)
 	if err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func process(in string, thumbs bool) error {
 	path := filepath.Join(dir, base)
 	if *meta {
 		fmt.Println("Root Object")
-		fmt.Println("  CLSID:        ", doc.ID)
+		fmt.Println("  CLSID:     ", doc.ID)
 		fmt.Println("  Created:   ", doc.Created)
 		fmt.Println("  Modified:  ", doc.Modified)
 		fmt.Println()
@@ -99,12 +99,13 @@ func process(in string, thumbs bool) error {
 			if entry.Stream {
 				fmt.Println("Stream Object")
 				fmt.Println("  Name (raw):", entry.Name)
+				fmt.Println("  Initial:   ", entry.Initial)
 				fmt.Println("  Path:      ", strings.Join(entry.Path, "/"))
 			} else {
 				fmt.Println("Storage Object")
 				fmt.Println("  Name (raw):", entry.Name)
 				fmt.Println("  Path:      ", strings.Join(entry.Path, "/"))
-				fmt.Println("  CLSID:        ", entry.ID)
+				fmt.Println("  CLSID:     ", entry.ID)
 				fmt.Println("  Created:   ", entry.Created)
 				fmt.Println("  Modified:  ", entry.Modified)
 			}
