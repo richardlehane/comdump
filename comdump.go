@@ -25,15 +25,17 @@
 package main
 
 import (
+	"encoding/binary"
 	"flag"
 	"fmt"
-	"github.com/richardlehane/mscfb"
 	"io"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	"unicode"
+
+	"github.com/richardlehane/mscfb"
 )
 
 var DEBUG = flag.Bool("debug", false, "print stream sizes to stdout")
@@ -53,7 +55,7 @@ func clean(str string) string {
 }
 
 func process(in string, thumbs bool) error {
-	thumbsBuf := make([]byte, 24)
+	thumbsSz := make([]byte, 4)
 
 	file, err := os.Open(in)
 	if err != nil {
@@ -124,9 +126,15 @@ func process(in string, thumbs bool) error {
 		if entry.Children && entry.Stream {
 			paths[len(paths)-1] += "_"
 		}
-		if thumbs {
+		if thumbs && entry.Name != "Catalog" {
 			paths[len(paths)-1] += ".jpg"
-			_, err = doc.Read(thumbsBuf)
+			_, err = doc.Read(thumbsSz)
+			if err != nil {
+				return err
+			}
+			sz := binary.LittleEndian.Uint32(thumbsSz)
+			cut := make([]byte, int(sz)-4)
+			_, err = doc.Read(cut)
 			if err != nil {
 				return err
 			}
