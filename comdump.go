@@ -34,8 +34,10 @@ import (
 	"path/filepath"
 	"strings"
 	"unicode"
+	"unicode/utf16"
 
 	"github.com/richardlehane/mscfb"
+	"github.com/richardlehane/msoleps/types"
 )
 
 var DEBUG = flag.Bool("debug", false, "print stream sizes to stdout")
@@ -43,6 +45,20 @@ var DEBUG = flag.Bool("debug", false, "print stream sizes to stdout")
 var thumbs = flag.Bool("thumbs", false, "treat input Compound object as Thumbs.db file")
 
 var meta = flag.Bool("meta", false, "output Compound object metadata")
+
+type CatalogHeader struct {
+	Magic      uint16
+	Version    uint16
+	NumEntries uint32
+	DimensionX uint32
+	DimensionY uint32
+}
+
+type CatalogEntry struct {
+	Size   uint32
+	Number uint32
+	Date   types.FileTime
+}
 
 func clean(str string) string {
 	buf := make([]rune, 0, len(str))
@@ -137,6 +153,38 @@ func process(in string, thumbs bool) error {
 			_, err = doc.Read(cut)
 			if err != nil {
 				return err
+			}
+		}
+		if thumbs && entry.Name == "Catalog" {
+			hdr := new(CatalogHeader)
+			err = binary.Read(doc, binary.LittleEndian, hdr)
+			if err != nil {
+				return err
+			}
+			fmt.Println("Thumbs Database")
+			fmt.Println("  Version:    ", hdr.Version)
+			fmt.Println("  Thumbnails: ", hdr.NumEntries)
+			fmt.Println("  DimensionX: ", hdr.DimensionX)
+			fmt.Println("  DimensionY: ", hdr.DimensionY)
+			for i := 0; i < int(hdr.NumEntries); i++ {
+				thumb := new(CatalogEntry)
+				err = binary.Read(doc, binary.LittleEndian, thumb)
+				if err != nil {
+					return err
+				}
+				name := make([]uint16, (int(thumb.Size)-20)/2)
+				err = binary.Read(doc, binary.LittleEndian, name)
+				if err != nil {
+					return err
+				}
+				fmt.Println("  Thumbnail ", thumb.Number)
+				fmt.Println("    Name: ", string(utf16.Decode(name)))
+				fmt.Println("    Date: ", thumb.Date)
+				pad := make([]byte, 4)
+				_, err = doc.Read(pad)
+				if err != nil {
+					return err
+				}
 			}
 		}
 		outFile, err := os.Create(filepath.Join(paths...))
