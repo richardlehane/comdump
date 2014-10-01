@@ -33,7 +33,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"unicode"
 	"unicode/utf16"
 
 	"github.com/richardlehane/mscfb"
@@ -58,16 +57,6 @@ type CatalogEntry struct {
 	Size   uint32
 	Number uint32
 	Date   types.FileTime
-}
-
-func clean(str string) string {
-	buf := make([]rune, 0, len(str))
-	for _, r := range str {
-		if unicode.IsPrint(r) {
-			buf = append(buf, r)
-		}
-	}
-	return string(buf)
 }
 
 func process(in string, thumbs bool) error {
@@ -109,14 +98,11 @@ func process(in string, thumbs bool) error {
 		}
 		paths := []string{path}
 		entry.Path = append(entry.Path, entry.Name)
-		for i, v := range entry.Path {
-			entry.Path[i] = clean(v)
-		}
 		paths = append(paths, entry.Path...)
 		if *meta {
 			if entry.Stream {
 				fmt.Println("Stream Object")
-				fmt.Println("  Name (raw):", entry.Name)
+				fmt.Println("  Name :     ", entry.Name)
 				fmt.Println("  Initial:   ", entry.Initial)
 				fmt.Println("  Path:      ", strings.Join(entry.Path, "/"))
 			} else {
