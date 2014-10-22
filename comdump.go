@@ -116,17 +116,12 @@ func process(in string, thumbs bool) error {
 			fmt.Println()
 			continue
 		}
-		if entry.Children {
+		if !entry.Stream {
 			err = os.Mkdir(filepath.Join(paths...), os.ModePerm)
 			if err != nil {
 				return err
 			}
-			if !entry.Stream {
-				continue
-			}
-		}
-		if entry.Children && entry.Stream {
-			paths[len(paths)-1] += "_"
+			continue
 		}
 		if thumbs && entry.Name != "Catalog" {
 			paths[len(paths)-1] += ".jpg"
