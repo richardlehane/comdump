@@ -78,9 +78,9 @@ func process(in string, thumbs bool) error {
 	path := filepath.Join(dir, base)
 	if *meta {
 		fmt.Println("Root Object")
-		fmt.Println("  CLSID:     ", doc.ID)
-		fmt.Println("  Created:   ", doc.Created)
-		fmt.Println("  Modified:  ", doc.Modified)
+		fmt.Println("  CLSID:     ", doc.ID())
+		fmt.Println("  Created:   ", doc.Created())
+		fmt.Println("  Modified:  ", doc.Modified())
 		fmt.Println()
 	} else {
 		err = os.Mkdir(path, os.ModePerm)
@@ -100,23 +100,24 @@ func process(in string, thumbs bool) error {
 		entry.Path = append(entry.Path, entry.Name)
 		paths = append(paths, entry.Path...)
 		if *meta {
-			if entry.Stream {
+			if !entry.FileInfo().IsDir() {
 				fmt.Println("Stream Object")
 				fmt.Println("  Name :     ", entry.Name)
 				fmt.Println("  Initial:   ", entry.Initial)
 				fmt.Println("  Path:      ", strings.Join(entry.Path, "/"))
+				fmt.Printf("  Size:       %d", entry.Size)
 			} else {
 				fmt.Println("Storage Object")
 				fmt.Println("  Name (raw):", entry.Name)
 				fmt.Println("  Path:      ", strings.Join(entry.Path, "/"))
-				fmt.Println("  CLSID:     ", entry.ID)
-				fmt.Println("  Created:   ", entry.Created)
-				fmt.Println("  Modified:  ", entry.Modified)
+				fmt.Println("  CLSID:     ", entry.ID())
+				fmt.Println("  Created:   ", entry.Created())
+				fmt.Println("  Modified:  ", entry.Modified())
 			}
 			fmt.Println()
 			continue
 		}
-		if !entry.Stream {
+		if entry.FileInfo().IsDir() {
 			err = os.Mkdir(filepath.Join(paths...), os.ModePerm)
 			if err != nil {
 				return err
@@ -172,16 +173,15 @@ func process(in string, thumbs bool) error {
 		if err != nil {
 			return err
 		}
-		if entry.Stream {
-			_, err = io.Copy(outFile, doc)
-			if err != nil {
-				return err
-			}
-			if *DEBUG {
-				fmt.Println(filepath.Join(paths...))
-				fmt.Printf("Stream size: %v\n", entry.StreamSize)
-			}
+		_, err = io.Copy(outFile, doc)
+		if err != nil {
+			return err
 		}
+		if *DEBUG {
+			fmt.Println(filepath.Join(paths...))
+			fmt.Printf("Stream size: %v\n", entry.Size)
+		}
+
 		outFile.Close()
 	}
 	return nil
