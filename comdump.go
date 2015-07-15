@@ -39,7 +39,7 @@ import (
 	"github.com/richardlehane/msoleps/types"
 )
 
-var DEBUG = flag.Bool("debug", false, "print stream sizes to stdout")
+var debug = flag.Bool("debug", false, "print debugging info")
 
 var thumbs = flag.Bool("thumbs", false, "treat input Compound object as Thumbs.db file")
 
@@ -71,6 +71,14 @@ func process(in string, thumbs bool) error {
 	doc, err := mscfb.New(file)
 	if err != nil {
 		return err
+	}
+	if *debug {
+		d := doc.Debug()
+		fmt.Println("DEBUGGING")
+		for k, v := range d {
+			fmt.Printf("%s: %v\n", k, v)
+		}
+		return nil
 	}
 	dir, base := filepath.Split(in)
 	base = strings.Join(strings.Split(base, "."), "_")
@@ -177,11 +185,6 @@ func process(in string, thumbs bool) error {
 		if err != nil {
 			return err
 		}
-		if *DEBUG {
-			fmt.Println(filepath.Join(paths...))
-			fmt.Printf("Stream size: %v\n", entry.Size)
-		}
-
 		outFile.Close()
 	}
 	return nil
