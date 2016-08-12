@@ -69,7 +69,7 @@ func process(in string, thumbs bool) error {
 	defer file.Close()
 
 	doc, err := mscfb.New(file)
-	if err != nil {
+	if doc == nil {
 		return err
 	}
 	if *debug {
@@ -85,6 +85,9 @@ func process(in string, thumbs bool) error {
 	base += "_comobjects"
 	path := filepath.Join(dir, base)
 	if *meta {
+		if err != nil {
+			fmt.Println("Errors: ", err.Error())
+		}
 		fmt.Println("Root Object")
 		fmt.Println("  CLSID:     ", doc.ID())
 		fmt.Println("  Created:   ", doc.Created())
